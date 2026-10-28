@@ -1,0 +1,19 @@
+# Yangilik va hukumat kanallari: faqat kalit so'z (kalit_sozlar.txt) bor postlar yuboriladi.
+Government_rus     # Rossiya hukumati
+GovSG              # Singapur hukumati
+Prima_Sursa_MD     # Moldova hukumati
+MID_Russia         # Rossiya TIV
+MFARussia          # Rossiya TIV (inglizcha)
+Ukraine_MFA        # Ukraina TIV
+IsraelMFA          # Isroil TIV
+francediplomatie   # Fransiya TIV
+kunuzofficial      # Kun.uz
+daryo              # Daryo
+gazetauz           # Gazeta.uz
+podrobno           # Podrobno.uz
+uzanews            # UzA
+tass_agency        # TASS
+rian_ru            # RIA Novosti
+bbcrussian         # BBC Russian
+nytimes            # New York Times
+washingtonpost     # Washington Post

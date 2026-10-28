@@ -1,0 +1,11 @@
+# Davlat rahbarlarining o'z kanallari: BARCHA postlari yuboriladi.
+# Har qatorda bitta kanal nomi. Qo'shish yoki o'chirish uchun shu faylni tahrirlang.
+RTErdogan              # Turkiya — Erdo'g'an
+emmanuelmacron         # Fransiya — Makron
+V_Zelenskiy_official   # Ukraina — Zelenskiy
+OP_UA                  # Ukraina — Prezident ofisi
+AbiyAhmedAliofficial   # Efiopiya — Abiy Ahmed
+bnetanyahu             # Isroil — Netanyahu
+SyrianPresidency       # Suriya — Prezidentlik
+aqorda_resmi           # Qozog'iston — Aqorda
+pul_1                  # Belarus — Lukashenko
