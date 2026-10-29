@@ -1,1 +1,35 @@
+name: Prezident bot
 
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # bot to'xtab qolsa, 30 daqiqa ichida qayta ishga tushadi
+  workflow_dispatch:        # qo'lda ishga tushirish tugmasi
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prezident-bot
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: |
+          git config user.name "prezident-bot"
+          git config user.email "bot@users.noreply.github.com"
+      - name: Botni ishga tushirish (uzluksiz rejim)
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_IDS: ${{ secrets.CHAT_IDS }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          LOOP_MINUTES: "340"
+        run: python main.py
