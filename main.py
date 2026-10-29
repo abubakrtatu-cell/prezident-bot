@@ -91,26 +91,87 @@ def load_seen() -> dict | None:
 
 def save_seen(seen: dict):
     cutoff = time.time() - 10 * 86400  # 10 kundan eskilarini o'chirish
-    seen = {k: v for k, v in seen.items() if v > cutoff}
+    seen = {k: v for k, v in seen.items() if k.startswith("_") or v > cutoff}
+    if REMOVED_CHATS and "_groups" in seen:
+        seen["_groups"] = [g for g in seen["_groups"] if g not in REMOVED_CHATS]
     SEEN_FILE.write_text(json.dumps(seen, ensure_ascii=False, indent=0), encoding="utf-8")
 
 
+OWNER_IDS = {c for c in CHAT_IDS if not c.startswith("-")}  # guruh qo'sha oladigan odamlar
+EXTRA_CHATS: list[str] = []      # bot o'zi topgan guruhlar
+REMOVED_CHATS: set[str] = set()  # botni chiqarib yuborgan guruhlar
+
+
+def tg_url(method: str) -> str:
+    return f"https://api.telegram.org/bot{TOKEN}/{method}"
+
+
+def send_to(chat_id: str, text: str):
+    for _ in range(3):
+        try:
+            r = requests.post(tg_url("sendMessage"),
+                              data={"chat_id": chat_id, "text": text, "parse_mode": "HTML",
+                                    "disable_web_page_preview": "true"}, timeout=20)
+        except Exception as e:
+            print("Yuborishda xato:", chat_id, e)
+            return
+        if r.status_code == 429:  # Telegram "sekinroq" desa
+            time.sleep(r.json().get("parameters", {}).get("retry_after", 5) + 1)
+            continue
+        if not r.ok:
+            print("Yuborishda xato:", chat_id, r.text[:200])
+            if chat_id.startswith("-") and r.status_code in (400, 403):
+                REMOVED_CHATS.add(chat_id)   # bot guruhdan chiqarilgan
+        return
+
+
 def send(text: str):
-    for chat_id in CHAT_IDS:
-        for _ in range(3):
-            r = requests.post(
-                f"https://api.telegram.org/bot{TOKEN}/sendMessage",
-                data={"chat_id": chat_id, "text": text, "parse_mode": "HTML",
-                      "disable_web_page_preview": "true"},
-                timeout=20,
-            )
-            if r.status_code == 429:  # Telegram "sekinroq" desa
-                time.sleep(r.json().get("parameters", {}).get("retry_after", 5) + 1)
-                continue
-            if not r.ok:
-                print("Yuborishda xato:", chat_id, r.text[:200])
-            break
+    for chat_id in dict.fromkeys(CHAT_IDS + EXTRA_CHATS):
+        if chat_id in REMOVED_CHATS:
+            continue
+        send_to(chat_id, text)
         time.sleep(0.3)
+
+
+def check_groups(seen: dict) -> list[str]:
+    """Bot qo'shilgan guruhlarni o'zi aniqlaydi. Yangi qo'shilganlar ro'yxatini qaytaradi."""
+    groups = set(seen.get("_groups", []))
+    new = []
+    try:
+        res = requests.get(tg_url("getUpdates"), timeout=30, params={
+            "offset": seen.get("_offset", 0), "timeout": 0,
+            "allowed_updates": json.dumps(["my_chat_member", "message"])}).json()
+    except Exception as e:
+        print("getUpdates xatosi:", e)
+        res = {}
+    for u in res.get("result", []):
+        seen["_offset"] = u["update_id"] + 1
+        m = u.get("my_chat_member")
+        if m:
+            cid, who = str(m["chat"]["id"]), str(m["from"]["id"])
+            status = m["new_chat_member"]["status"]
+            if status in ("member", "administrator") and who in OWNER_IDS and cid not in groups:
+                groups.add(cid)
+                new.append(cid)
+            elif status in ("left", "kicked"):
+                groups.discard(cid)
+        msg = u.get("message") or {}
+        chat = msg.get("chat", {})
+        if msg.get("migrate_to_chat_id"):            # guruh supergruppaga aylangan
+            old = str(chat.get("id"))
+            if old in groups:
+                groups.discard(old)
+                groups.add(str(msg["migrate_to_chat_id"]))
+        elif (chat.get("type") in ("group", "supergroup")
+              and (msg.get("text") or "").startswith("/start")
+              and str(msg.get("from", {}).get("id")) in OWNER_IDS
+              and str(chat["id"]) not in groups):
+            groups.add(str(chat["id"]))
+            new.append(str(chat["id"]))
+    groups -= REMOVED_CHATS
+    seen["_groups"] = sorted(groups)
+    EXTRA_CHATS[:] = [g for g in groups if g not in CHAT_IDS]
+    return new
 
 
 def send_long(text: str):
@@ -337,6 +398,10 @@ def run_once(do_google: bool = True):
     first_run = seen is None
     seen = seen or {}
     now = time.time()
+
+    for gid in check_groups(seen):
+        send_to(gid, "✅ Prezidentlar boti shu guruhga ulandi. Rahbarlar haqidagi yangiliklar "
+                     "endi bu yerga ham avtomatik keladi.")
 
     leader_channels = read_list("rahbar_kanallari.txt")   # hamma postlari yuboriladi
     news_channels = read_list("yangilik_kanallari.txt")   # faqat kalit so'z bo'lsa
