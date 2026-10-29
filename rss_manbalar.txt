@@ -1,0 +1,5 @@
+# Rasmiy saytlarning RSS lentalari: rahbar shaxsan qatnashgan voqealar yuboriladi.
+# Har qatorda bitta havola. Izoh yozish uchun havoladan keyin bo'shliq va # qo'ying.
+https://www.whitehouse.gov/news/feed/                  # AQSh — Oq uy yangiliklari
+https://www.whitehouse.gov/presidential-actions/feed/  # AQSh — Prezident farmonlari va qarorlari
+https://usa.tmembassy.gov.tm/news/feed               # Turkmaniston — Prezident va TIV yangiliklari

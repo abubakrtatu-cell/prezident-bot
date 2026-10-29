@@ -4,8 +4,6 @@ GovSG              # Singapur hukumati
 Prima_Sursa_MD     # Moldova hukumati
 MID_Russia         # Rossiya TIV
 MFARussia          # Rossiya TIV (inglizcha)
-Ukraine_MFA        # Ukraina TIV
-IsraelMFA          # Isroil TIV
 francediplomatie   # Fransiya TIV
 kunuzofficial      # Kun.uz
 daryo              # Daryo
